@@ -1,29 +1,37 @@
-﻿import uuid
+﻿from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional
 from datetime import datetime
-from typing import List, Optional, Any
-from pydantic import BaseModel, Field, field_validator
-from .enums import NodeType, ConfidenceLevel
+import uuid
 
-class Node(BaseModel):
-    entity_id: str = Field(default_factory=lambda: str(uuid.uuid4()), frozen=True)
-    node_type: NodeType
-    content: Any
-    confidence: float = Field(ge=0.0, le=1.0)
-    valid_from: datetime = Field(default_factory=datetime.utcnow)
+CONFIDENCE_FLOOR = 0.05
+
+@dataclass
+class KnowledgeNode:
+    node_type: Any = None
+    label: str = 'default'
+    properties: Dict[str, Any] = field(default_factory=dict)
+    source_ids: List[uuid.UUID] = field(default_factory=list)
+    valid_from: datetime = field(default_factory=datetime.utcnow)
+    confidence: float = 0.5
+    entity_id: uuid.UUID = field(default_factory=uuid.uuid4)
+    quarantine_flag: bool = False
+    content: str = ''
+    decay_rate: float = 0.0
     valid_until: Optional[datetime] = None
-    source_ids: List[str] = Field(min_length=1)
-    quarantined: bool = False
+    meta_tags: List[str] = field(default_factory=list)
 
-    @field_validator('valid_until')
-    def check_temporal_consistency(cls, v, info):
-        if v is not None and 'valid_from' in info.data:
-            if info.data['valid_from'] > v:
-                raise ValueError("valid_from must be <= valid_until (Rule DI-03)")
-        return v
+    def __post_init__(self):
+        if self.valid_until and self.valid_from > self.valid_until:
+            raise ValueError("valid_from must be <= valid_until")
 
     @property
-    def confidence_level(self) -> ConfidenceLevel:
-        return ConfidenceLevel.get_level(self.confidence)
+    def is_stale(self) -> bool:
+        if self.valid_until and datetime.utcnow() > self.valid_until:
+            return True
+        return False
 
-    def quarantine(self):
-        self.quarantined = True
+    @property
+    def quarantined(self) -> bool:
+        return self.quarantine_flag
+
+Node = KnowledgeNode
