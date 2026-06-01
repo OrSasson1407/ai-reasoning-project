@@ -1,0 +1,40 @@
+name: Build & Deploy to K8s
+
+# This tells GitHub to run deployment ONLY after the Test workflow finishes on the main branch
+on:
+  workflow_run:
+    workflows: ["Architectural Invariants Test"]
+    types:
+      - completed
+    branches: [ "main" ]
+
+env:
+  DOCKER_REGISTRY: my-registry/ai-reasoning
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    # This ensures it only deploys if the tests actually PASSED (not just finished/failed)
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Core Engine Image
+        run: docker build -t ${{ env.DOCKER_REGISTRY }}/core-engine:latest .
+
+      - name: Build API Gateway Image
+        run: docker build -t ${{ env.DOCKER_REGISTRY }}/api-gateway:latest ./api-gateway
+
+      # In a live environment, you would push the images here
+      # run: docker push ${{ env.DOCKER_REGISTRY }}/core-engine:latest
+      # run: docker push ${{ env.DOCKER_REGISTRY }}/api-gateway:latest
+
+      - name: Validate Kubernetes Manifests
+        run: |
+          # Dry run the K8s manifests to ensure syntax is valid
+          kubectl apply -f k8s/namespace.yaml --dry-run=client
+          kubectl apply -f k8s/database/ --dry-run=client
+          kubectl apply -f k8s/ --dry-run=client

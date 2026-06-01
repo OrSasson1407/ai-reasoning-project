@@ -1,0 +1,48 @@
+﻿version: '3.8'
+
+services:
+  api-gateway:
+    build: 
+      context: ./api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - CORE_ENGINE_URL=http://core-engine:8000
+      - AUTH_SECRET=strict-architecture-key
+      - ENFORCE_AIC_CONTRACTS=True
+    depends_on:
+      - core-engine
+
+  core-engine:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - AI_REASONING_DEBUG=True
+      - MONGO_URI=mongodb://mongo:27017/aireasoning
+      - POSTGRES_URI=postgresql://user:password@postgres:5432/aireasoning
+    depends_on:
+      - mongo
+      - postgres
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: aireasoning
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+volumes:
+  mongo_data:
+  pg_data:

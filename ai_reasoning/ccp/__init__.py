@@ -1,0 +1,3 @@
+﻿"""
+Contradiction & Consistency Protocol (CCP)
+"""

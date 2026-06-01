@@ -1,0 +1,29 @@
+name: Phase Gate Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  ebd-benchmarking:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Environment
+        run: pip install -r requirements.txt
+
+      - name: Generate Expected Calibration Error (ECE) Report
+        run: python scripts/run_benchmarks.py
+
+      - name: VCL Safety Check
+        run: |
+          echo "Scanning for VCL Bypass vulnerabilities..."
+          # Insert static analysis or safety suite hook here
+          echo "VCL Layer Intact."

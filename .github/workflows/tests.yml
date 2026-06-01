@@ -1,0 +1,29 @@
+name: Architectural Invariants Test
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  validate-architecture:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt pytest pytest-asyncio
+
+      - name: Run Core Logic Tests (RRS & CCP)
+        run: pytest ai_reasoning/tests/ -v --strict-markers
+
+      - name: Run Gateway Interface Tests (AIC)
+        run: pytest api-gateway/tests/ -v

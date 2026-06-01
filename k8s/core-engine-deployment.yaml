@@ -1,0 +1,35 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: core-engine
+  namespace: ai-reasoning
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: core-engine
+  template:
+    metadata:
+      labels:
+        app: core-engine
+    spec:
+      containers:
+      - name: core-engine
+        image: ai-reasoning-core:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        env:
+        - name: MONGO_URI
+          value: "mongodb://mongo-svc:27017/aireasoning"
+        - name: POSTGRES_URI
+          value: "postgresql://user:password@postgres-svc:5432/aireasoning"
+        - name: AI_REASONING_DEBUG
+          value: "False"
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"

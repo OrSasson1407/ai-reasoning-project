@@ -1,0 +1,14 @@
+﻿/**
+ * AIC Violation Codes
+ * Sourced from: AIC §5.2
+ */
+export const AIC_VIOLATIONS = {
+    NO_TRACE: "CV-001",
+    NO_CONFIDENCE: "CV-002",
+    UNPARSED_INPUT: "CV-003",
+    CONFIDENCE_INFLATION: "CV-004",
+    ABDUCTIVE_PROMOTION: "CV-005",
+    QUARANTINE_BYPASS: "CV-006",
+    SILENT_MUTATION: "CV-007",
+    VCL_BYPASS: "CV-008"
+};
