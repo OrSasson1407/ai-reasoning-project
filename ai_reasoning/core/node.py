@@ -25,13 +25,8 @@ class KnowledgeNode:
             raise ValueError("valid_from must be <= valid_until")
 
     @property
-    def is_stale(self) -> bool:
-        if self.valid_until and datetime.utcnow() > self.valid_until:
-            return True
-        return False
-
+    def is_stale(self) -> bool: return bool(self.valid_until and datetime.utcnow() > self.valid_until)
     @property
-    def quarantined(self) -> bool:
-        return self.quarantine_flag
+    def quarantined(self) -> bool: return self.quarantine_flag
 
 Node = KnowledgeNode

@@ -1,18 +1,31 @@
-﻿from .base import BaseStorageAdapter
+﻿# Note: Requires pip install neo4j
+from ai_reasoning.core.graph import KnowledgeGraph
+from ai_reasoning.core.node import KnowledgeNode
+from ai_reasoning.core.relation import Relation
+import logging
 
-class Neo4jAdapter(BaseStorageAdapter):
-    """
-    Production graph database adapter. 
-    Translates Core Node/Relation schemas to Cypher queries.
-    """
-    def __init__(self, uri, user, password):
-        # self.driver = GraphDatabase.driver(uri, auth=(user, password))
+logger = logging.getLogger(__name__)
+
+class Neo4jAdapter:
+    def __init__(self, uri="bolt://localhost:7687", user="neo4j", password="password"):
+        self.uri = uri
+        self.user = user
+        self.password = password
+        # self.driver = GraphDatabase.driver(self.uri, auth=(self.user, self.password))
+        logger.info("Neo4j Adapter Initialized (Mock Driver Active)")
+
+    def sync_graph(self, graph: KnowledgeGraph):
+        """Pushes the in-memory graph to Neo4j"""
+        logger.info(f"Syncing {len(graph.nodes)} nodes and {len(graph.relations)} relations to Neo4j.")
+        # Example Cypher: 
+        # MERGE (n:KnowledgeNode {id: }) SET n.label = , n.confidence = 
         pass
 
-    def save_node(self, node):
-        # Cypher: CREATE (n:KnowledgeNode {id: $id, type: $type...})
-        pass
+    def load_graph(self) -> KnowledgeGraph:
+        """Pulls the database into the memory engine"""
+        logger.info("Loading graph from Neo4j into memory...")
+        return KnowledgeGraph()
 
-    def save_relation(self, relation):
-        # Cypher: MATCH (a), (b) CREATE (a)-[r:REL_TYPE]->(b)
+    def close(self):
+        # self.driver.close()
         pass

@@ -1,44 +1,29 @@
-﻿"""
-AI Reasoning Project — Self-Reflection Mechanism
-Sourced from: Architecture Doc v2.0 (Page 34)
-"""
-from ai_reasoning.core.graph import KnowledgeGraph
+﻿from ai_reasoning.core.graph import KnowledgeGraph
+from ai_reasoning.telemetry.metrics import system_metrics
+import logging
 
-class SelfReflectionEngine:
-    """
-    Monitors the system's own reasoning paths for cognitive biases.
-    """
+logger = logging.getLogger(__name__)
+
+class MetaReflectionEngine:
     def __init__(self, graph: KnowledgeGraph):
         self.graph = graph
-        self.bias_audit_log = []
 
-    def detect_confirmation_bias(self, target_node_id: str) -> dict:
+    def run_reflection_cycle(self):
         """
-        Flags cases where the system accepts supporting evidence too readily
-        while systematically downweighting contradictory evidence.
+        Periodically reviews the graph to update metrics and prune dead paths.
         """
-        node = self.graph.get_node(target_node_id)
-        if not node:
-            return {"status": "error", "message": "Node not found"}
-
-        inbound_rels = self.graph.get_inbound_relations(target_node_id)
-        supporting = [r for r in inbound_rels if r.relation_type.value == "SUPPORTS"]
-        contradicting = [r for r in inbound_rels if r.relation_type.value == "CONTRADICTS"]
-
-        bias_detected = False
-        warning = None
-
-        # Heuristic: High volume of accepted weak support vs. rejected strong contradiction
-        if len(supporting) > 3 and len(contradicting) > 0:
-            avg_support_conf = sum(r.confidence for r in supporting) / len(supporting)
-            max_contradict_conf = max(r.confidence for r in contradicting)
-            
-            if avg_support_conf < 0.6 and max_contradict_conf > 0.8:
-                bias_detected = True
-                warning = "Disconfirmation Resistance: System maintaining belief despite high-confidence contradiction."
+        logger.info("Starting Meta-Reflection Cycle...")
+        
+        # 1. Update Telemetry
+        system_metrics.update_graph_metrics(self.graph)
+        
+        # 2. Identify structural anomalies (e.g., highly confident nodes with zero sources)
+        anomalies_found = 0
+        for node in self.graph.nodes.values():
+            if node.node_type != "FACT" and node.confidence > 0.95 and not node.source_ids:
+                logger.warning(f"Reflection Alert: Node {node.entity_id} has high confidence but no sources. Flagging for review.")
+                node.meta_tags.append("needs_review")
+                anomalies_found += 1
                 
-        return {
-            "node_id": target_node_id,
-            "bias_detected": bias_detected,
-            "warning": warning
-        }
+        logger.info(f"Reflection Cycle Complete. Anomalies flagged: {anomalies_found}")
+        return anomalies_found

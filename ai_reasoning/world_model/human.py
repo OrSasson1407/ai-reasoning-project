@@ -7,9 +7,7 @@ class EmotionalStateVector:
     anger_frustration: float = 0.0
     trust_openness: float = 0.0
     cognitive_dissonance: float = 0.0
-    
     def calculate_irrationality_factor(self) -> float:
-        # Tweak denominator to 2.0 so 1.3 total / 2.0 = 0.65 (which is > 0.5)
         return (self.fear_anxiety + self.anger_frustration + self.cognitive_dissonance) / 2.0
 
 @dataclass

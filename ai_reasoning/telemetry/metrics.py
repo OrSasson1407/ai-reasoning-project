@@ -1,22 +1,30 @@
-﻿"""
-AI Reasoning Project — Prometheus Telemetry
-Tracks real-time system health, contraction states, and rule violations.
-"""
-from prometheus_client import Counter, Gauge, Histogram
+﻿from prometheus_client import Counter, Gauge, Histogram
 
 class SystemMetrics:
-    # CCP (Contradiction & Consistency Protocol) Metrics
-    ACTIVE_CONTRADICTIONS = Gauge('active_contradictions_total', 'Current number of unresolved Level 1 HALT contradictions')
-    QUARANTINED_NODES = Gauge('quarantined_nodes_total', 'Number of nodes currently under quarantine (CI-05)')
-    
-    # AIC (API Interface Contract) Metrics
-    CONTRACT_VIOLATIONS = Counter('contract_violations_total', 'Count of AIC violations intercepted', ['violation_code'])
-    
-    # Inference & Meta-Cognition Metrics
-    INFERENCE_OPERATIONS = Counter('inference_operations_total', 'Total derivations processed', ['mode'])
-    CONFIDENCE_CALIBRATION_ERROR = Gauge('expected_calibration_error', 'Current ECE from EBD benchmarking phase')
+    def __init__(self):
+        # Counters
+        self.nodes_created = Counter('nodes_created_total', 'Total number of knowledge nodes created')
+        self.relations_created = Counter('relations_created_total', 'Total number of relations formed')
+        self.contradictions_detected = Counter('contradictions_detected_total', 'Total contradictions caught by CCP')
+        self.safety_violations = Counter('safety_violations_total', 'Total times VCL blocked a harmful node')
+        
+        # Gauges
+        self.active_quarantines = Gauge('active_quarantines', 'Current number of quarantined nodes')
+        self.average_confidence = Gauge('graph_average_confidence', 'Average confidence of all active nodes')
+        
+        # Histograms
+        self.inference_latency = Histogram('inference_latency_seconds', 'Time taken to execute derive_node')
 
-    @classmethod
-    def record_violation(cls, code: str):
-        """Records a CV-XXX violation to trigger Grafana alerts."""
-        cls.CONTRACT_VIOLATIONS.labels(violation_code=code).inc()
+    def update_graph_metrics(self, graph):
+        if not graph.nodes:
+            return
+        quarantined = sum(1 for n in graph.nodes.values() if n.quarantine_flag)
+        self.active_quarantines.set(quarantined)
+        
+        active_nodes = [n for n in graph.nodes.values() if not n.quarantine_flag]
+        if active_nodes:
+            avg_conf = sum(n.confidence for n in active_nodes) / len(active_nodes)
+            self.average_confidence.set(avg_conf)
+
+# Global Metrics Instance
+system_metrics = SystemMetrics()

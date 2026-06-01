@@ -1,19 +1,30 @@
-﻿from ai_reasoning.core.node import Node
+﻿from ai_reasoning.core.node import KnowledgeNode
 from ai_reasoning.core.enums import NodeType
+from datetime import datetime, timezone
+import uuid
 
-class InputParser:
-    """
-    Prevents CV-003: UNPARSED_INPUT.
-    Ensures free text from L1 is structured before hitting L2 inference.
-    """
-    def parse_to_node(self, raw_text: str, source_id: str) -> Node:
-        if not raw_text.strip():
-            raise ValueError("Empty input cannot be parsed.")
+class DataIngestionParser:
+    def __init__(self, default_confidence: float = 0.8):
+        self.default_confidence = default_confidence
+
+    def parse_raw_text(self, text: str, source_id: str) -> list[KnowledgeNode]:
+        """
+        A placeholder for an LLM-based extraction pipeline.
+        In production, you would pass 'text' to Gemini/OpenAI to extract facts.
+        """
+        nodes = []
+        # Simulate simple sentence splitting as fact extraction
+        sentences = [s.strip() for s in text.split('.') if s.strip()]
+        
+        for sentence in sentences:
+            node = KnowledgeNode(
+                node_type=NodeType.FACT,
+                label=sentence[:50] + ("..." if len(sentence) > 50 else ""),
+                content=sentence,
+                confidence=self.default_confidence,
+                source_ids=[uuid.uuid5(uuid.NAMESPACE_DNS, source_id)],
+                valid_from=datetime.now(timezone.utc)
+            )
+            nodes.append(node)
             
-        # Stub logic for NLP parsing into structured representation
-        return Node(
-            node_type=NodeType.FACT,
-            content={"parsed_statement": raw_text},
-            confidence=0.5, # Default starting confidence
-            source_ids=[source_id]
-        )
+        return nodes
